@@ -5,7 +5,7 @@
  * Tabs: Overview | Grampanchayat Portal | Farmers | Soil Reports | Activity Log
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     BarChart2, Users, Leaf, FileText, Activity, ChevronRight,
     CheckCircle, Clock, XCircle, AlertTriangle, TrendingUp,
@@ -17,7 +17,6 @@ import {
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // ── Helpers ────────────────────────────────────────────────────
-const fmt = (n) => new Intl.NumberFormat('en-IN').format(n);
 const fmtRs = (n) => `₹${new Intl.NumberFormat('en-IN', { notation: 'compact', maximumFractionDigits: 1 }).format(n)}`;
 
 const STATUS_STYLES = {

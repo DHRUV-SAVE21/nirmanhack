@@ -1,16 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { ShieldCheck, Calendar, Droplets, Sprout, Leaf, Activity, CheckCircle2, AlertTriangle, Box } from 'lucide-react';
 
-import { useTranslation } from 'react-i18next';
-
 const TrustReport = () => {
-    const { t } = useTranslation();
     const { batchId } = useParams();
     const [reportData, setReportData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [error] = useState('');
 
     useEffect(() => {
         // Hardcoded Gold-Standard Static Data for Demo Fallback
