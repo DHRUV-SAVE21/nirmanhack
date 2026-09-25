@@ -10,6 +10,7 @@ import { getTourSteps } from '../../constants/tourConfig';
 
 // ─── Custom Joyride Tooltip ─────────────────────────────────────────
 const CustomTooltip = ({
+    continuous,
     index,
     step,
     backProps,
@@ -171,6 +172,7 @@ const GuidedTour = () => {
 
     const {
         tourActive,
+        tourCompleted,
         tourStepIndex,
         stopTour,
         completeTour,
@@ -185,9 +187,10 @@ const GuidedTour = () => {
     const [isNavigating, setIsNavigating] = useState(false); // Controls pausing during route change
 
     // Get ALL steps translated for an end-to-end website tour
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     const allSteps = useMemo(() => {
         return getTourSteps(t);
-    }, [t]);
+    }, [t, i18n.language]);
 
     // When tour becomes active, show the arrival animation first
     useEffect(() => {

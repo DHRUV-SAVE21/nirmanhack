@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Cache & Fix Location</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin: 10px 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        .success {
+            background: #10b981;
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            margin: 20px 0;
+            display: none;
+        }
+        .log {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .log-item {
+            margin: 5px 0;
+            padding: 5px;
+            border-left: 3px solid #667eea;
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 System Cleanup & Fix</h1>
+        <p>This will fix all location and profile issues by clearing cache and resetting localStorage.</p>
+        
+        <div class="log" id="log"></div>
+        
+        <button onclick="clearEverything()">🗑️ Clear All Cache & localStorage</button>
+        <button onclick="fixUserProfile()">👤 Fix User Profile (UUID → Email)</button>
+        <button onclick="requestLocation()">📍 Test Location Permission</button>
+        <button onclick="goHome()">🏠 Go to App</button>
+        
+        <div class="success" id="success"></div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const item = document.createElement('div');
+            item.className = 'log-item';
+            item.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logDiv.appendChild(item);
+            logDiv.scrollTop = logDiv.scrollHeight;
+            console.log(message);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function clearEverything() {
+            log('🗑️ Starting cleanup...');
+            
+            // Clear localStorage
+            const itemCount = localStorage.length;
+            log(`📦 Found ${itemCount} items in localStorage`);
+            localStorage.clear();
+            log('✅ localStorage cleared');
+            
+            // Clear sessionStorage
+            sessionStorage.clear();
+            log('✅ sessionStorage cleared');
+            
+            // Clear cookies
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            log('✅ Cookies cleared');
+            
+            // Clear cache if supported
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => {
+                        caches.delete(name);
+                        log(`✅ Cache deleted: ${name}`);
+                    });
+                });
+            }
+            
+            log('🎉 All cache cleared!');
+            showSuccess('✅ All cache and storage cleared! Please login again.');
+        }
+
+        function fixUserProfile() {
+            log('👤 Checking user profile...');
+            
+            const userStr = localStorage.getItem('user');
+            if (!userStr) {
+                log('❌ No user found in localStorage');
+                alert('No user logged in. Please login first.');
+                return;
+            }
+            
+            try {
+                const user = JSON.parse(userStr);
+                log(`📧 User email: ${user.email}`);
+                log(`🆔 User ID: ${user.id}`);
+                log(`🔑 User user_id: ${user.user_id}`);
+                
+                if (user.email && user.user_id !== user.email) {
+                    log('🔧 Fixing user_id to use email...');
+                    user.user_id = user.email;
+                    localStorage.setItem('user', JSON.stringify(user));
+                    log('✅ user_id updated to email');
+                    showSuccess('✅ Profile fixed! user_id now uses email.');
+                } else if (user.email && user.user_id === user.email) {
+                    log('✅ user_id already correct (using email)');
+                    showSuccess('✅ Profile already correct!');
+                } else {
+                    log('⚠️ No email found in user object');
+                    alert('User object missing email field');
+                }
+            } catch (e) {
+                log(`❌ Error: ${e.message}`);
+                alert('Error parsing user data');
+            }
+        }
+
+        function requestLocation() {
+            log('📍 Requesting location permission...');
+            
+            if (!navigator.geolocation) {
+                log('❌ Geolocation not supported');
+                alert('Geolocation not supported by your browser');
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    const accuracy = position.coords.accuracy;
+                    
+                    log(`✅ Location found!`);
+                    log(`📍 Latitude: ${lat}`);
+                    log(`📍 Longitude: ${lng}`);
+                    log(`🎯 Accuracy: ${accuracy} meters`);
+                    
+                    showSuccess(`✅ Location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+                },
+                (error) => {
+                    log(`❌ Location error: ${error.message}`);
+                    log(`Error code: ${error.code}`);
+                    
+                    if (error.code === 1) {
+                        alert('Location permission denied. Please enable location in browser settings.');
+                    } else if (error.code === 2) {
+                        alert('Location unavailable. Check your device settings.');
+                    } else if (error.code === 3) {
+                        alert('Location request timeout. Try again.');
+                    }
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        function goHome() {
+            window.location.href = '/';
+        }
+
+        // Auto-log on page load
+        window.onload = function() {
+            log('🚀 System Cleanup Tool Loaded');
+            log('Ready to fix issues!');
+        };
+    </script>
+</body>
+</html>

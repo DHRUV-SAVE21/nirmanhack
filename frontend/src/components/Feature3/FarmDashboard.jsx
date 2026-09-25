@@ -22,15 +22,17 @@ const FarmDashboard = () => {
     const evaluateRules = (data) => {
         if (!data) return null;
 
-        const { soil_moisture, nitrogen, phosphorus, potassium } = data;
+        const { soil_moisture, soil_temperature, nitrogen, phosphorus, potassium } = data;
 
         let actions = [];
+        let critical = false;
         let reasons = [];
 
         // 1. Irrigation Rules (Simplified)
         if (soil_moisture < 20) {
             actions.push("CRITICAL: Heavy Irrigation");
             reasons.push(`Critical: Very Low Moisture (${soil_moisture}%)`);
+            critical = true;
         } else if (soil_moisture < 30) {
             actions.push("Standard Irrigation");
             reasons.push(`Low Moisture (${soil_moisture}%)`);
@@ -99,9 +101,7 @@ const FarmDashboard = () => {
                 headers: { "X-Farmer-ID": farmerId }
             });
             setBlockchainHistory(res.data);
-        } catch (error) {
-            console.warn("Error fetching blockchain history", error);
-        }
+        } catch (e) { }
     };
 
     useEffect(() => {
@@ -135,7 +135,7 @@ const FarmDashboard = () => {
             alert("Actions Executed Successfully!");
             // Refresh
             fetchStatus();
-        } catch {
+        } catch (e) {
             alert("Error executing actions");
         } finally {
             setActionLoading(false);

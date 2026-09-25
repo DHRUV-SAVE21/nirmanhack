@@ -1,0 +1,36 @@
+🚀 ALL ROUTES - QUICK REFERENCE
+
+=== LANDING PAGES ===
+http://localhost:5173/                    ⭐ Enhanced Landing (Hero Image)
+http://localhost:5173/modern              🌈 Modern Landing (Aurora)
+http://localhost:5173/landing             📄 Original Landing
+
+=== MODERN PAGES (ENHANCED) ===
+http://localhost:5173/dashboard-modern    📊 Dashboard
+http://localhost:5173/marketplace-modern  🛒 Marketplace (6 Products) ⭐
+http://localhost:5173/inventory-modern    📦 Inventory (New) ⭐
+http://localhost:5173/crop-health-modern  🌱 Crop Health (Fixed) ⭐
+http://localhost:5173/profile-modern      👤 Profile
+http://localhost:5173/features-modern     ✨ Features
+
+=== ORIGINAL PAGES ===
+http://localhost:5173/dashboard           📊 Original Dashboard
+http://localhost:5173/marketplace         🛒 Original Marketplace
+http://localhost:5173/inventory           📦 Original Inventory
+http://localhost:5173/crop-health         🌱 Original Crop Health
+http://localhost:5173/profile             👤 Original Profile
+
+=== WHAT'S FIXED ===
+✅ Landing page hero image added
+✅ Marketplace enhanced with 6 products
+✅ Inventory page created
+✅ Crop health responsive fixed
+✅ All images integrated
+✅ Professional, natural design
+✅ Mobile responsive
+
+=== START SERVER ===
+cd frontend
+npm run dev
+
+Then visit any route above!
