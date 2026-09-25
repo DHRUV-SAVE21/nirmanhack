@@ -1,0 +1,65 @@
+{
+  "all_features": [
+    "soil_n",
+    "soil_p",
+    "soil_k",
+    "soil_ph",
+    "soil_moisture",
+    "humidity",
+    "avg_temperature",
+    "seasonal_rainfall",
+    "crop_duration_days",
+    "district_encoded",
+    "state_encoded",
+    "soil_type_encoded",
+    "climate_season_encoded",
+    "previous_crop_encoded",
+    "crop_name_encoded",
+    "crop_water_requirement_encoded"
+  ],
+  "base_features": [
+    "soil_n",
+    "soil_p",
+    "soil_k",
+    "soil_ph",
+    "soil_moisture",
+    "humidity",
+    "avg_temperature",
+    "seasonal_rainfall",
+    "crop_duration_days"
+  ],
+  "categorical_features": [
+    "district",
+    "state",
+    "soil_type",
+    "climate_season",
+    "previous_crop",
+    "crop_name",
+    "crop_water_requirement"
+  ],
+  "target_variables": [
+    "yield_tonnes_per_hectare",
+    "risk_score"
+  ],
+  "model_performance": {
+    "yield_model": {
+      "mae": 3.068605435448512,
+      "rmse": 5.287698495277277,
+      "r2": 0.9019844136523852,
+      "mape": 34.056095840836214
+    },
+    "risk_model": {
+      "mae": 0.09038000266313553,
+      "rmse": 0.11439220729856732,
+      "r2": 0.4621638316017649,
+      "mape": 21.75055965192528
+    }
+  },
+  "dataset_info": {
+    "total_samples": 1000,
+    "num_crops": 15,
+    "num_states": 15,
+    "num_districts": 76,
+    "generation_date": "2026-01-24 22:26:52"
+  }
+}
