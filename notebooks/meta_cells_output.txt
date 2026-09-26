@@ -1,0 +1,355 @@
+
+============================================================
+Cell 2 (code) - matches: ['meta_model']
+============================================================
+class ModelConfig:
+    """Model configuration and paths"""
+    # Input data
+    DATASET_PATH = 'hybrid_agri_dataset_2000rows.csv'
+    
+    # Model save paths
+    XGB_PATH = 'models/xgb_model.pkl'
+    CATBOOST_PATH = 'models/catboost_model.pkl'
+    LGB_PATH = 'models/lgb_model.pkl'
+    TFT_PATH = 'models/tft_model.pth'
+    META_PATH = 'models/meta_model.pkl'
+    PIPELINE_PATH = 'models/complete_pipeline.pkl'
+    TFT_HIDDEN_SIZE = 128
+    TFT_NUM_LAYERS = 2
+    TFT_DROPOUT = 0.1
+    TFT_EPOCHS = 100
+    TFT_BATCH_SIZE = 32
+    TFT_LEARNING_RATE = 0.001
+    
+    # Random seed
+    RANDOM_SEED = 42
+
+
+============================================================
+Cell 10 (code) - matches: ['test_meta', 'train_meta', 'meta_model']
+============================================================
+class MetaLearnerTrainer:
+    """Trains meta-learner for stacking ensemble"""
+    
+    @staticmethod
+    def train(base_models, X_train, y_train, X_test, y_test):
+        print("\n" + "="*60)
+        print("🧠 TRAINING META-LEARNER (STACKING)")
+        print("="*60)
+        
+        # Generate base model predictions
+        train_meta_features = pd.DataFrame()
+        test_meta_features = pd.DataFrame()
+        
+        for name, model in base_models.items():
+            train_pred = model.predict(X_train)
+            test_pred = model.predict(X_test)
+            
+            train_meta_features[f'pred_{name}'] = train_pred
+            test_meta_features[f'pred_{name}'] = test_pred
+        
+        # Add original features
+        train_meta = pd.concat([train_meta_features, X_train.reset_index(drop=True)], axis=1)
+        test_meta = pd.concat([test_meta_features, X_test.reset_index(drop=True)], axis=1)
+        
+        # Train meta-model
+        meta_model = xgb.XGBRegressor(
+            n_estimators=200,
+            max_depth=5,
+            learning_rate=0.03,
+            random_state=ModelConfig.RANDOM_SEED
+        )
+        
+        meta_model.fit(train_meta, y_train)
+        
+        # Evaluate
+        train_pred = meta_model.predict(train_meta)
+        test_pred = meta_model.predict(test_meta)
+        
+        train_r2 = r2_score(y_train, train_pred)
+        test_r2 = r2_score(y_test, test_pred)
+        test_rmse = np.sqrt(mean_squared_error(y_test, test_pred))
+        
+        print(f"\n📊 Meta-Learner Performance:")
+        print(f"   Train R²: {train_r2:.4f}")
+        print(f"   Test R²:  {test_r2:.4f}")
+        print(f"   Test RMSE: {test_rmse:.4f} tons/acre")
+        
+        # Feature importance
+        importance = pd.DataFrame({
+            'feature': train_meta.columns,
+            'importance': meta_model.feature_importances_
+        }).sort_values('importance', ascending=False)
+        
+        print("\n🔑 Top meta-features:")
+        for i, row in importance.head(5).iterrows():
+            print(f"   {row['feature']}: {row['importance']:.3f}")
+        
+        # Save model
+        os.makedirs('models', exist_ok=True)
+        joblib.dump(meta_model, ModelConfig.META_PATH)
+        print(f"✅ Model saved to {ModelConfig.META_PATH}")
+        
+        return meta_model, {'train_r2': train_r2, 'test_r2': test_r2, 'test_rmse': test_rmse}
+
+============================================================
+Cell 11 (code) - matches: ['meta_model']
+============================================================
+class CompletePipeline:
+    """Saves complete pipeline with all components"""
+    
+    @staticmethod
+    def save(preparator, models, meta_model, metrics):
+        """Save complete pipeline"""
+        
+        pipeline = {
+            # Data preparation components
+            'label_encoders': preparator.label_encoders,
+            'scaler': preparator.scaler,
+            'feature_columns': preparator.feature_columns,
+            
+            # All models
+            'models': models,
+            'meta_model': meta_model,
+            
+            # Training metrics
+            'metrics': metrics,
+            
+            # Metadata
+            'training_date': datetime.now().isoformat(),
+            'version': '1.0'
+        }
+        
+        os.makedirs('models', exist_ok=True)
+        joblib.dump(pipeline, ModelConfig.PIPELINE_PATH)
+        print(f"\n✅ Complete pipeline saved to {ModelConfig.PIPELINE_PATH}")
+
+============================================================
+Cell 12 (code) - matches: ['meta_model']
+============================================================
+def train_all_models():
+    """Train and save all models"""
+    
+    print("\n" + "="*80)
+    print("🔥 KILLER HYBRID MODEL TRAINING 🔥")
+    print("="*80)
+    
+    # Step 1: Prepare data
+    preparator = DataPreparator()
+    data = preparator.load_and_prepare(ModelConfig.DATASET_PATH)
+    
+    X_train, X_test = data['X_train'], data['X_test']
+    y_train, y_test = data['y_train'], data['y_test']
+    
+    # Step 2: Train XGBoost
+    xgb_model, xgb_metrics = XGBoostTrainer.train(X_train, y_train, X_test, y_test)
+    
+    # Step 3: Train CatBoost
+    catboost_model, catboost_metrics = CatBoostTrainer.train(X_train, y_train, X_test, y_test)
+    
+    # Step 4: Train LightGBM
+    lgb_model, lgb_metrics = LightGBMTrainer.train(X_train, y_train, X_test, y_test)
+    
+    # Step 5: Train TFT
+    tft_model, tft_metrics = TFTTrainer.train(X_train, y_train, X_test, y_test)
+    
+    # Step 6: Train Meta-Learner
+    base_models = {
+        'xgb': xgb_model,
+        'catboost': catboost_model,
+        'lgb': lgb_model
+    }
+    meta_model, meta_metrics = MetaLearnerTrainer.train(
+        base_models, X_train, y_train, X_test, y_test
+    )
+    
+    # Step 7: Save complete pipeline
+    all_models = {
+        'xgb': xgb_model,
+        'catboost': catboost_model,
+        'lgb': lgb_model,
+        'tft': tft_model
+    }
+    
+    all_metrics = {
+        'xgb': xgb_metrics,
+        'catboost': catboost_metrics,
+        'lgb': lgb_metrics,
+        'tft': tft_metrics,
+        'meta': meta_metrics
+    }
+    
+    CompletePipeline.save(preparator, all_models, meta_model, all_metrics)
+    
+    # Summary
+    print("\n" + "="*80)
+    print("📊 TRAINING SUMMARY")
+    print("="*80)
+    print(f"\n{'Model':<12} {'Test R²':<10} {'Test RMSE':<12}")
+    print("-"*40)
+    print(f"{'XGBoost':<12} {xgb_metrics['test_r2']:.4f}    {xgb_metrics['test_rmse']:.4f}")
+    print(f"{'CatBoost':<12} {catboost_metrics['test_r2']:.4f}    {catboost_metrics['test_rmse']:.4f}")
+    print(f"{'LightGBM':<12} {lgb_metrics['test_r2']:.4f}    {lgb_metrics['test_rmse']:.4f}")
+    print(f"{'TFT':<12} {tft_metrics['test_r2']:.4f}    {tft_metrics['test_rmse']:.4f}")
+    print(f"{'Meta':<12} {meta_metrics['test_r2']:.4f}    {meta_metrics['test_rmse']:.4f}")
+    
+    print("\n" + "="*80)
+    print("✅ ALL MODELS TRAINED AND SAVED SUCCESSFULLY")
+    print("="*80)
+    print("\n📁 Model files created:")
+    print(f"   • {ModelConfig.XGB_PATH}")
+    print(f"   • {ModelConfig.CATBOOST_PATH}")
+    print(f"   • {ModelConfig.LGB_PATH}")
+    print(f"   • {ModelConfig.TFT_PATH}")
+    print(f"   • {ModelConfig.META_PATH}")
+    print(f"   • {ModelConfig.PIPELINE_PATH}")
+
+
+============================================================
+Cell 13 (code) - matches: ['meta_model']
+============================================================
+def example_load_and_predict():
+    """Example of how to load models for inference"""
+    
+    print("\n" + "="*80)
+    print("🔍 LOADING MODELS FOR INFERENCE")
+    print("="*80)
+    
+    # Load complete pipeline
+    pipeline = joblib.load(ModelConfig.PIPELINE_PATH)
+    
+    print("\n✅ Pipeline loaded successfully")
+    print(f"   Training date: {pipeline['training_date']}")
+    print(f"   Feature columns: {len(pipeline['feature_columns'])}")
+    
+    # Load individual models
+    xgb_model = joblib.load(ModelConfig.XGB_PATH)
+    catboost_model = joblib.load(ModelConfig.CATBOOST_PATH)
+    lgb_model = joblib.load(ModelConfig.LGB_PATH)
+    meta_model = joblib.load(ModelConfig.META_PATH)
+    
+    # Load TFT
+    tft_checkpoint = torch.load(ModelConfig.TFT_PATH, map_location='cpu')
+    print(f"\n✅ TFT model loaded (input_size: {tft_checkpoint['input_size']})")
+    
+    # Example prediction with a single sample
+    print("\n🔮 Example prediction (using first test sample):")
+    
+    # You would normally get this from your hardware + APIs
+    example_features = pd.DataFrame([pipeline['feature_columns']]).T.squeeze()
+    
+    # Scale features
+    example_scaled = pipeline['scaler'].transform([example_features.values])
+    example_df = pd.DataFrame(example_scaled, columns=pipeline['feature_columns'])
+    
+    # Make predictions
+    xgb_pred = xgb_model.predict(example_df)[0]
+    catboost_pred = catboost_model.predict(example_df)[0]
+    lgb_pred = lgb_model.predict(example_df)[0]
+    
+    print(f"\n   XGBoost prediction: {xgb_pred:.3f} tons/acre")
+    print(f"   CatBoost prediction: {catboost_pred:.3f} tons/acre")
+    print(f"   LightGBM prediction: {lgb_pred:.3f} tons/acre")
+    
+    return pipeline
+
+
+============================================================
+Cell 15 (code) - matches: ['test_meta', 'train_meta', 'Meta-Ensemble', 'meta_model', 'generate_model_visualizations']
+============================================================
+def generate_model_visualizations():
+    """
+    Generate comprehensive visualizations for all trained models
+    Creates: confusion matrices (actual vs predicted), residual plots,
+             error distributions, feature importance, model comparisons
+    """
+    
+    print("\n" + "="*80)
+    print("📊 GENERATING MODEL VISUALIZATIONS")
+    print("="*80)
+    
+    # Create output directory
+    viz_dir = 'visualizations'
+    os.makedirs(viz_dir, exist_ok=True)
+    
+    # Load pipeline and data
+    print("\n📂 Loading models and data...")
+    pipeline = joblib.load(ModelConfig.PIPELINE_PATH)
+    
+    # Load original data to get test set
+    df = pd.read_csv(ModelConfig.DATASET_PATH)
+    
+    # Prepare data same way as training
+    preparator = DataPreparator()
+    data = preparator.load_and_prepare(ModelConfig.DATASET_PATH)
+    X_test, y_test = data['X_test'], data['y_test']
+    
+    # Load all models
+    models = {
+        'XGBoost': joblib.load(ModelConfig.XGB_PATH),
+        'CatBoost': joblib.load(ModelConfig.CATBOOST_PATH),
+        'LightGBM': joblib.load(ModelConfig.LGB_PATH)
+    }
+    
+    # Load meta-model
+    meta_model = joblib.load(ModelConfig.META_PATH)
+    
+    # Generate meta-features for meta-model
+    train_meta_features = pd.DataFrame()
+    for name, model in models.items():
+        train_meta_features[f'pred_{name.lower()}'] = model.predict(X_test)
+    test_meta = pd.concat([train_meta_features, X_test.reset_index(drop=True)], axis=1)
+    
+    # Add meta-model to dict
+    models['Meta-Ensemble'] = meta_model
+    meta_predictions = {}
+    
+    # Dictionary to store all predictions and metrics
+    predictions = {}
+    metrics = {}
+    
+    print("\n🔮 Generating predictions for all models...")
+    
+    for name, model in models.items():
+        if name == 'Meta-Ensemble':
+            y_pred = model.predict(test_meta)
+        else:
+            y_pred = model.predict(X_test)
+        
+        predictions[name] = y_pred
+        
+        # Calculate metrics
+        r2 = r2_score(y_test, y_pred)
+        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+        mae = mean_absolute_error(y_test, y_pred)
+        
+        metrics[name] = {
+            'R²': r2,
+            'RMSE': rmse,
+            'MAE': mae
+        }
+        
+        print(f"   {name:12} → R²: {r2:.4f}, RMSE: {rmse:.4f}")
+    
+    # ========================================================================
+    # 1. ACTUAL VS PREDICTED SCATTER PLOTS (Confusion Matrix for Regression)
+    # ========================================================================
+    
+    print("\n📈 Creating Actual vs Predicted scatter plots...")
+    
+    fig, axes = plt.subplots(2, 2, figsize=(14, 12))
+    axes = axes.flatten()
+    
+    for idx, (name, y_pred) in enumerate(predictions.items()):
+        if idx < 4:  # Max 4 plots
+            ax = axes[idx]
+            
+            # Scatter plot
+            ax.scatter(y_test, y_pred, alpha=0.5, s=30, c='blue', edgecolors='white', linewidth=0.5)
+     
+... (15689 total chars)
+
+============================================================
+Cell 16 (code) - matches: ['generate_model_visualizations']
+============================================================
+generate_model_visualizations()
