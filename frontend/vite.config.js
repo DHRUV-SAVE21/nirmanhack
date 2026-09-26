@@ -9,7 +9,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate', // Immediate update
       injectRegister: 'auto',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['logo.png', 'pwa-192x192.svg', 'pwa-512x512.svg'],
       manifest: {
         name: 'Annadata Saathi',
         short_name: 'Annadata',
