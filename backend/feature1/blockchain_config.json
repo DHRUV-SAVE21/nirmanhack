@@ -1,0 +1,214 @@
+{
+    "contract_address": "0xf9F77afC27Dbb611B11d9Ea3A0f939dfA1a839Ee",
+    "abi": [
+        {
+            "anonymous": false,
+            "inputs": [
+                {
+                    "indexed": true,
+                    "internalType": "string",
+                    "name": "landId",
+                    "type": "string"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "string",
+                    "name": "status",
+                    "type": "string"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "confidenceScore",
+                    "type": "uint256"
+                },
+                {
+                    "indexed": false,
+                    "internalType": "uint256",
+                    "name": "timestamp",
+                    "type": "uint256"
+                }
+            ],
+            "name": "LandVerified",
+            "type": "event"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "_landId",
+                    "type": "string"
+                }
+            ],
+            "name": "getLandRecord",
+            "outputs": [
+                {
+                    "components": [
+                        {
+                            "internalType": "string",
+                            "name": "landId",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "ownerName",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "mappedArea",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "documentArea",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "confidenceScore",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "status",
+                            "type": "string"
+                        },
+                        {
+                            "internalType": "uint256",
+                            "name": "timestamp",
+                            "type": "uint256"
+                        },
+                        {
+                            "internalType": "string",
+                            "name": "ipfsHash",
+                            "type": "string"
+                        }
+                    ],
+                    "internalType": "struct LandRegistry.LandRecord",
+                    "name": "",
+                    "type": "tuple"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "",
+                    "type": "uint256"
+                }
+            ],
+            "name": "landIds",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }
+            ],
+            "name": "records",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "landId",
+                    "type": "string"
+                },
+                {
+                    "internalType": "string",
+                    "name": "ownerName",
+                    "type": "string"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "mappedArea",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "documentArea",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "confidenceScore",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "string",
+                    "name": "status",
+                    "type": "string"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "timestamp",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "string",
+                    "name": "ipfsHash",
+                    "type": "string"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [
+                {
+                    "internalType": "string",
+                    "name": "_landId",
+                    "type": "string"
+                },
+                {
+                    "internalType": "string",
+                    "name": "_ownerName",
+                    "type": "string"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_mappedArea",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_documentArea",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "uint256",
+                    "name": "_confidenceScore",
+                    "type": "uint256"
+                },
+                {
+                    "internalType": "string",
+                    "name": "_status",
+                    "type": "string"
+                },
+                {
+                    "internalType": "string",
+                    "name": "_ipfsHash",
+                    "type": "string"
+                }
+            ],
+            "name": "registerLand",
+            "outputs": [],
+            "stateMutability": "nonpayable",
+            "type": "function"
+        }
+    ],
+    "account": "0x4b0EF8FADc7BB66Aca2E049AB0b8a88d5C0546f1"
+}
